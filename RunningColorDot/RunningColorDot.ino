@@ -4,8 +4,8 @@
 
 const int
   collisionPauseTime = 100,
-  intervalColor = 2,
-  intervalStep = 20,
+  colorChangeInterval = 2,
+  colorChangesPerStep = 10,
   ledCount = 158,
   trailLength = 6,
   guaranteedSteps = 40,
@@ -20,16 +20,12 @@ void setup() {
 
 void loop() {
   // Sends a color-changing dot along the strip
-  static long
-    nextColor = 0,
-    nextStep = 0;
-  long currentMillis = millis();
-  if (currentMillis >= nextStep) {
-    nextStep = currentMillis + intervalStep;
-    moveTrail();
-  }
-  if (currentMillis >= nextColor) {
-    nextColor = currentMillis + intervalColor;
+  static unsigned int changeCounter = 0;
+  static long nextColor = 0;
+  if (millis() >= nextColor) {
+    nextColor += colorChangeInterval;
+    if (++changeCounter % colorChangesPerStep == 0)
+      moveTrail();
     paintTrail(rotatingWheelColor());
   }
 }
@@ -38,9 +34,8 @@ void moveTrail(void) {
   static boolean forward = true;
   static int changelessSteps = guaranteedSteps;
   strip.setPixelColor(trail[trailLength - 1], 0);
-  for (int index = trailLength; index-- > 1;) {
+  for (int index = trailLength; index-- > 1;)
     trail[index] = trail[index - 1];
-  }
   if (changelessSteps > 0)
     --changelessSteps;
   if (!random(swapChanceReciprocal) && !changelessSteps) {
@@ -49,11 +44,10 @@ void moveTrail(void) {
     forward = !forward;
     changelessSteps = guaranteedSteps;
   }
-  if (forward) {
+  if (forward)
     trail[0] = (trail[1] + 1) % ledCount;
-  } else {
+  else
     trail[0] = (trail[1] + ledCount - 1) % ledCount;
-  }
 }
 
 void paintBlock(int index, boolean forward, rgbdata_t color) {
@@ -64,9 +58,8 @@ void paintBlock(int index, boolean forward, rgbdata_t color) {
 }
 
 void paintTrail(rgbdata_t color) {
-  for (int i = trailLength; i-- > 0;) {
+  for (int i = trailLength; i-- > 0;)
     strip.setPixelColor(trail[i], attenuateColor(color, i));
-  }
   strip.show();
 }
 
